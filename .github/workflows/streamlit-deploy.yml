@@ -1,0 +1,46 @@
+name: Deploy Streamlit App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Create setup.sh
+      run: |
+        cat << 'EOF' > setup.sh
+        #!/bin/bash
+        pip install streamlit pandas plotly numpy
+        streamlit run app.py --server.headless true
+        EOF
+        chmod +x setup.sh
+      shell: bash
+    
+    - name: Deploy to Streamlit Cloud
+      env:
+        STREAMLIT_APP_URL: ${{ secrets.STREAMLIT_APP_URL }}
+      run: |
+        echo "Streamlit app files ready for deployment"
+        echo "Repository: ${{ github.repository }}"
+        echo "To deploy manually:"
+        echo "1. Go to https://share.streamlit.io"
+        echo "2. Login with GitHub"
+        echo "3. Select repository: ${{ github.repository }}"
+        echo "4. Select branch: main"
+        echo "5. Main file: app.py"
+        echo "6. Click Deploy!"
